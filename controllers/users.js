@@ -7,12 +7,12 @@ module.exports.getUsers = (req, res) => {
 };
 
 module.exports.getUserId = (req, res) => {
-  User.findById(req.params._id)
-    .then((user) => res.send({ data: user }))
+  User.findById(req.params.userId)
+    .then((userId) => res.send({ data: userId }))
     .catch((err) => {
       if (err.name === "SomeError") {
-        return res.status(404).send({
-          message: "Пользователь по указанному _id не найден",
+        return res.status(400).send({
+          message: "Переданы некорректные данные при создании пользователя",
         });
       }
       return res.status(500).send({ message: "Ошибка по умолчанию." });
