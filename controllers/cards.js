@@ -12,7 +12,7 @@ module.exports.createCard = (req, res) => {
   Card.create({ name, link, owner })
     .then((card) => res.send({ data: card }))
     .catch((err) => {
-      if (err.name === "SomeError") {
+      if (err.name === 'ValidationError' || err.name === 'CastError') {
         return res.status(400).send({
           message: "Переданы некорректные данные при создании карточки",
         });
@@ -24,9 +24,14 @@ module.exports.createCard = (req, res) => {
 
 module.exports.deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
-    .then((card) => res.send({ data: card }))
+    .then((card) => {
+      if (!card) {
+         res.status(404).send({ message: 'Пользователь с таким id не найден' });
+      }
+       res.send({ data: card });
+    })
     .catch((err) => {
-      if (err.name === "SomeError") {
+      if (err.name === 'ValidationError' || err.name === 'CastError') {
         return res.status(404).send({
           message: "Карточка с указанным _id не найдена.",
         });
@@ -42,9 +47,14 @@ module.exports.likeCard = (req, res) => {
     { $addToSet: { likes: req.user._id } },
     { new: true }
   )
-    .then((likes) => res.send({ data: likes }))
+    .then((likes) => {
+      if (!likes) {
+         res.status(404).send({ message: 'Пользователь с таким id не найден' });
+      }
+       res.send({ data: likes });
+    })
     .catch((err) => {
-      if (err.name === "SomeError") {
+      if (err.name === 'ValidationError' || err.name === 'CastError') {
         return res.status(400).send({
           message: "Переданы некорректные данные для постановки/снятии лайка.",
         });
@@ -60,9 +70,14 @@ module.exports.deleteLikeCard = (req, res) => {
     { $pull: { likes: req.user._id } },
     { new: true }
   )
-    .then((likes) => res.send({ data: likes }))
+  .then((likes) => {
+    if (!likes) {
+       res.status(404).send({ message: 'Пользователь с таким id не найден' });
+    }
+     res.send({ data: likes });
+  })
     .catch((err) => {
-      if (err.name === "SomeError") {
+      if (err.name === 'ValidationError' || err.name === 'CastError') {
         return res.status(400).send({
           message: "Переданы некорректные данные для постановки/снятии лайка.",
         });
