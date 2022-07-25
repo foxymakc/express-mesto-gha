@@ -32,7 +32,7 @@ module.exports.deleteCard = (req, res) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
-        return res.status(404).send({
+        return res.status(400).send({
           message: "Карточка с указанным _id не найдена.",
         });
       } else {
