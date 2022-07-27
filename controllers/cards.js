@@ -25,13 +25,17 @@ const createCard = (req, res) => {
 
 const deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
-    .orFail(() => res.status(ERROR_NOT_FOUND).send({ message: 'Карточка не найдена' }))
+    .orFail(() => {
+      const error = new Error('Карточка не найдена');
+      error.statusCode = ERROR_NOT_FOUND;
+      throw error;
+    })
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.name === 'IncorrectDetaError' || err.name === 'CastError') {
-        res.status(ERROR_BAD_REQUEST).send({
-          message: 'Переданы некорректные данные',
-        });
+        res.status(ERROR_BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
+      } else if (err.statusCode === ERROR_NOT_FOUND) {
+        res.status(ERROR_NOT_FOUND).send({ message: err.message });
       } else {
         res.status(ERROR_DEFAULT).send({ message: 'Ошибка по умолчанию' });
       }
@@ -44,13 +48,17 @@ const likeCard = (req, res) => {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-    .orFail(() => res.status(ERROR_NOT_FOUND).send({ message: 'Карточка не найдена' }))
+    .orFail(() => {
+      const error = new Error('Карточка не найдена');
+      error.statusCode = ERROR_NOT_FOUND;
+      throw error;
+    })
     .then((likes) => res.send({ data: likes }))
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
-        res.status(ERROR_BAD_REQUEST).send({
-          message: 'Переданы некорректные данные для постановки/снятии лайка.',
-        });
+        res.status(ERROR_BAD_REQUEST).send({ message: 'Переданы некорректные данные для постановки/снятии лайка' });
+      } else if (err.statusCode === ERROR_NOT_FOUND) {
+        res.status(ERROR_NOT_FOUND).send({ message: err.message });
       } else {
         res.status(ERROR_DEFAULT).send({ message: 'Ошибка по умолчанию' });
       }
@@ -63,13 +71,17 @@ const deleteLikeCard = (req, res) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-    .orFail(() => res.status(ERROR_NOT_FOUND).send({ message: 'Карточка не найдена' }))
+    .orFail(() => {
+      const error = new Error('Карточка не найдена');
+      error.statusCode = ERROR_NOT_FOUND;
+      throw error;
+    })
     .then((likes) => res.send({ data: likes }))
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
-        res.status(ERROR_BAD_REQUEST).send({
-          message: 'Переданы некорректные данные для постановки/снятии лайка.',
-        });
+        res.status(ERROR_BAD_REQUEST).send({ message: 'Переданы некорректные данные для постановки/снятии лайка' });
+      } else if (err.statusCode === ERROR_NOT_FOUND) {
+        res.status(ERROR_NOT_FOUND).send({ message: err.message });
       } else {
         res.status(ERROR_DEFAULT).send({ message: 'Ошибка по умолчанию' });
       }

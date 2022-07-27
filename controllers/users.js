@@ -9,13 +9,17 @@ const getUsers = (req, res) => {
 
 const getUserId = (req, res) => {
   User.findById(req.params.userId)
-    .orFail(() => res.status(ERROR_NOT_FOUND).send({ message: 'Пользователь по указанному _id не найден' }))
+    .orFail(() => {
+      const error = new Error('Пользователь по указанному _id не найден');
+      error.statusCode = ERROR_NOT_FOUND;
+      throw error;
+    })
     .then((userId) => res.send({ data: userId }))
     .catch((err) => {
       if (err.name === 'IncorrectDetaError' || err.name === 'CastError') {
-        res.status(ERROR_BAD_REQUEST).send({
-          message: 'Переданы некорректные данные при получении пользователя',
-        });
+        res.status(ERROR_BAD_REQUEST).send({ message: 'Переданы некорректные данные при получении пользователя' });
+      } else if (err.statusCode === ERROR_NOT_FOUND) {
+        res.status(ERROR_NOT_FOUND).send({ message: err.message });
       } else {
         res.status(ERROR_DEFAULT).send({ message: 'Ошибка по умолчанию.' });
       }
@@ -42,13 +46,17 @@ const updateUser = (req, res) => {
   const { name, about } = req.body;
 
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
-    .orFail(() => res.status(ERROR_NOT_FOUND).send({ message: 'Пользователь с таким id не найден' }))
+    .orFail(() => {
+      const error = new Error('Пользователь с таким id не найден');
+      error.statusCode = ERROR_NOT_FOUND;
+      throw error;
+    })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
-        res.status(ERROR_BAD_REQUEST).send({
-          message: 'Переданы некорректные данные при обновлении профиля.',
-        });
+        res.status(ERROR_BAD_REQUEST).send({ message: 'Переданы некорректные данные при обновлении профиля' });
+      } else if (err.statusCode === ERROR_NOT_FOUND) {
+        res.status(ERROR_NOT_FOUND).send({ message: err.message });
       } else {
         res.status(ERROR_DEFAULT).send({ message: 'Ошибка по умолчанию.' });
       }
@@ -59,13 +67,17 @@ const updateAvatar = (req, res) => {
   const { avatar } = req.body;
 
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
-    .orFail(() => res.status(ERROR_NOT_FOUND).send({ message: 'Пользователь с таким id не найден' }))
+    .orFail(() => {
+      const error = new Error('Пользователь с таким id не найден');
+      error.statusCode = ERROR_NOT_FOUND;
+      throw error;
+    })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
-        res.status(ERROR_BAD_REQUEST).send({
-          message: 'Переданы некорректные данные при обновлении аватара.',
-        });
+        res.status(ERROR_BAD_REQUEST).send({ message: 'Переданы некорректные данные при обновлении аватара' });
+      } else if (err.statusCode === ERROR_NOT_FOUND) {
+        res.status(ERROR_NOT_FOUND).send({ message: err.message });
       } else {
         res.status(ERROR_DEFAULT).send({ message: 'Ошибка по умолчанию.' });
       }
