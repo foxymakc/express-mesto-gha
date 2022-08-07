@@ -2,9 +2,11 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const { errors } = require('celebrate');
 const { auth } = require('./middlewares/auth');
 const { login, createUser } = require('./controllers/users');
 const { loginValidation, createUserValidation } = require('./middlewares/validation');
+const ErrorNotFound = require('./errors/ErrorNotFound');
 
 const PORT = 3000;
 const app = express();
@@ -26,10 +28,11 @@ app.post('/signup', createUserValidation, createUser);
 app.use('/', auth, require('./routes/users'));
 app.use('/', auth, require('./routes/cards'));
 
-app.use('*', (req, res, next) => {
-  res.status(404).send({ message: 'Запрашиваемый адрес не найден' });
-  next();
+app.use('*', () => {
+  throw new ErrorNotFound('Запрашиваемый ресурс не найден');
 });
+
+app.use(errors());
 
 app.listen(PORT, () => {
   // eslint-disable-next-line no-template-curly-in-string, no-console

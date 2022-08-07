@@ -1,5 +1,6 @@
 // eslint-disable-next-line import/no-unresolved
 const jwt = require('jsonwebtoken');
+const ErrorUnauthorized = require('../errors/ErrorUnauthorized');
 
 const { JWT_SECRET = 'secret-key' } = process.env;
 
@@ -10,9 +11,7 @@ const auth = (req, res, next) => {
   try {
     payload = jwt.verify(token, JWT_SECRET);
   } catch (err) {
-    const error = new Error('Требуется авторизация');
-    error.statusCode = 401;
-    throw error;
+    throw new ErrorUnauthorized('Требуется авторизация');
   }
   req.user = payload;
 

@@ -1,7 +1,8 @@
 // eslint-disable-next-line import/no-unresolved
 const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
-const { isEmail } = require('validator');
+const validator = require('validator');
+const ErrorUnauthorized = require('../errors/ErrorUnauthorized');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -32,7 +33,7 @@ const userSchema = new mongoose.Schema({
     unique: true,
     validate: {
       validator(email) {
-        return isEmail(email);
+        return validator.isEmail(email);
       },
       message: 'Не валидный адресс электронной почты',
     },
@@ -50,16 +51,12 @@ userSchema.statics.findUserByCredentials = function (email, password) {
   return this.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        const error = new Error('Неверные почта или пароль');
-        error.statusCode = 401;
-        throw error;
+        throw new ErrorUnauthorized({ message: 'Неверные почта или пароль' });
       }
       return bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
-            const error = new Error('Неверные почта или пароль');
-            error.statusCode = 401;
-            throw error;
+            throw new ErrorUnauthorized({ message: 'Неверные почта или пароль' });
           }
           return user;
         });

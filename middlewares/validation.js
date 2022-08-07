@@ -1,6 +1,5 @@
-// eslint-disable-next-line import/no-unresolved
 const { celebrate, Joi } = require('celebrate');
-// eslint-disable-next-line no-useless-escape
+
 const listConditions = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,}\.[a-z0-9]{1,10}\b([-a-z0-9-._~:/?#@!$&'()*+,;=]*)/;
 
 const loginValidation = celebrate({
