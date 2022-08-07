@@ -1,30 +1,34 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
+const { auth } = require('./middlewares/auth');
+const { login, createUser } = require('./controllers/users');
+const { loginValidation, createUserValidation } = require('./middlewares/validation');
 
 const PORT = 3000;
 const app = express();
 
+app.use(cookieParser());
+
 mongoose.connect('mongodb://localhost:27017/mestodb', {
+  useUnifiedTopology: true,
   useNewUrlParser: true,
+  autoIndex: true,
 });
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '62dd39b8d9c5723408a1709c', // вставьте сюда _id созданного в предыдущем пункте пользователя
-  };
+app.post('/signin', loginValidation, login);
+app.post('/signup', createUserValidation, createUser);
 
-  next();
-});
+app.use('/', auth, require('./routes/users'));
+app.use('/', auth, require('./routes/cards'));
 
-app.use('/', require('./routes/users'));
-app.use('/', require('./routes/cards'));
-
-app.use('*', (req, res) => {
+app.use('*', (req, res, next) => {
   res.status(404).send({ message: 'Запрашиваемый адрес не найден' });
+  next();
 });
 
 app.listen(PORT, () => {

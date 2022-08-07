@@ -7,7 +7,7 @@ const getCards = (req, res) => {
     .catch(() => res.status(ERROR_DEFAULT).send({ message: 'Ошибка по умолчанию' }));
 };
 
-const createCard = (req, res) => {
+const createCard = (req, res, next) => {
   const { name, link } = req.body;
   const owner = req.user._id;
   Card.create({ name, link, owner })
@@ -20,16 +20,18 @@ const createCard = (req, res) => {
       } else {
         res.status(ERROR_DEFAULT).send({ message: 'Ошибка по умолчанию' });
       }
-    });
+    })
+    .catch(next);
 };
 
-const deleteCard = (req, res) => {
+const deleteCard = (req, res, next) => {
   Card.findByIdAndRemove(req.params.cardId)
     .orFail(() => {
       const error = new Error('Карточка не найдена');
       error.statusCode = ERROR_NOT_FOUND;
       throw error;
     })
+    .catch(next)
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.name === 'IncorrectDetaError' || err.name === 'CastError') {
@@ -39,10 +41,11 @@ const deleteCard = (req, res) => {
       } else {
         res.status(ERROR_DEFAULT).send({ message: 'Ошибка по умолчанию' });
       }
-    });
+    })
+    .catch(next);
 };
 
-const likeCard = (req, res) => {
+const likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
@@ -53,6 +56,7 @@ const likeCard = (req, res) => {
       error.statusCode = ERROR_NOT_FOUND;
       throw error;
     })
+    .catch(next)
     .then((likes) => res.send({ data: likes }))
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
@@ -62,10 +66,11 @@ const likeCard = (req, res) => {
       } else {
         res.status(ERROR_DEFAULT).send({ message: 'Ошибка по умолчанию' });
       }
-    });
+    })
+    .catch(next);
 };
 
-const deleteLikeCard = (req, res) => {
+const deleteLikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
@@ -76,6 +81,7 @@ const deleteLikeCard = (req, res) => {
       error.statusCode = ERROR_NOT_FOUND;
       throw error;
     })
+    .catch(next)
     .then((likes) => res.send({ data: likes }))
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
@@ -85,7 +91,8 @@ const deleteLikeCard = (req, res) => {
       } else {
         res.status(ERROR_DEFAULT).send({ message: 'Ошибка по умолчанию' });
       }
-    });
+    })
+    .catch(next);
 };
 
 module.exports = {
