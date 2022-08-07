@@ -4,8 +4,14 @@ const ErrorUnauthorized = require('../errors/ErrorUnauthorized');
 
 const { JWT_SECRET = 'secret-key' } = process.env;
 
+// eslint-disable-next-line consistent-return
 const auth = (req, res, next) => {
-  const token = req.cookies.jwt;
+  const { authorization } = req.headers;
+
+  if (!authorization || !authorization.startsWith('Bearer ')) {
+    throw new ErrorUnauthorized('Требуется авторизация');
+  }
+  const token = authorization.replace('Bearer ', '');
   let payload;
 
   try {

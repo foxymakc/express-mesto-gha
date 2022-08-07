@@ -37,7 +37,7 @@ const createUser = (req, res, next) => {
   } = req.body;
 
   if (!email || !password) {
-    throw new ErrorBadRequest('Не передан email или пароль');
+    next(new ErrorBadRequest('Не передан email или пароль'));
   }
 
   bcrypt
@@ -45,16 +45,16 @@ const createUser = (req, res, next) => {
     .then((hash) => User.create({
       name, about, avatar, email, password: hash,
     }))
-    .catch((err) => {
-      if (err.name === 'ConflictError' || err.code === 11000) {
-        throw new ErrorConflict('Пользователь с таким email уже существует');
-      } else next(err);
-    })
     .then((user) => res.status(200).send({
       data: {
         name: user.name, about: user.about, avatar, email: user.email,
       },
     }))
+    .catch((err) => {
+      if (err.name === 'ConflictError' || err.code === 11000) {
+        throw new ErrorConflict('Пользователь с таким email уже существует');
+      }
+    })
     .catch(next);
 };
 
