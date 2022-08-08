@@ -14,7 +14,7 @@ const getUsers = (req, res, next) => {
 };
 
 const getUserId = (req, res, next) => {
-  User.findById(req.params.userId)
+  User.findById(req.params._id)
     .then((user) => {
       if (user) {
         res.statys(200).send(user);
@@ -28,6 +28,16 @@ const getUserId = (req, res, next) => {
       }
       next(err);
     });
+};
+
+const getInfoUser = (req, res, next) => {
+  User.findById(req.user._id)
+    .orFail()
+    .catch(() => {
+      throw new ErrorNotFound('Пользователь с таким id не найден');
+    })
+    .then((user) => res.status(200).send(user))
+    .catch(next);
 };
 
 const createUser = (req, res, next) => {
@@ -107,16 +117,6 @@ const login = (req, res, next) => {
       })
         .send({ message: 'Авторизация прошла успешно' });
     })
-    .catch(next);
-};
-
-const getInfoUser = (req, res, next) => {
-  User.findById(req.user._id)
-    .orFail()
-    .catch(() => {
-      throw new ErrorNotFound('Пользователь с таким id не найден');
-    })
-    .then((user) => res.status(200).send(user))
     .catch(next);
 };
 
