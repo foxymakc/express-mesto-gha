@@ -31,21 +31,26 @@ const createCard = (req, res, next) => {
 const deleteCard = (req, res, next) => {
   const userId = req.user._id;
   const { _id } = req.params;
-  Card.findByIdAndRemove(_id)
-    .orFail()
-    .catch(() => {
+  Card.findById(_id)
+    .orFail(() => {
       throw new ErrorNotFound('Карточка не найдена');
     })
-    .catch(next)
     .then((card) => {
-      if (card.owner.toString() === userId) {
-        Card.findByIdAndRemove(_id)
-          .then((cardData) => res.send(cardData));
-      } else {
-        throw new ErrorForbidden('Недостаточно прав для выполнения');
+      if (card.owner.toString() !== userId) {
+        throw new ErrorForbidden(
+          'Недостаточно прав для выполнения операции',
+        );
       }
+      Card.findByIdAndRemove(_id)
+        .then((cardData) => res.send(cardData))
+        .catch(next);
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new ErrorBadRequest('Переданы некорректные данные'));
+      }
+      next(err);
+    });
 };
 
 const likeCard = (req, res, next) => {
@@ -54,22 +59,21 @@ const likeCard = (req, res, next) => {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-    .orFail()
-    .catch(() => {
+    .orFail(() => {
       throw new ErrorNotFound('Карточка не найдена');
     })
-    .catch(next)
-    .then((likes) => res.send({ data: likes }))
-    .catch((err) => {
-      if (err.name === 'ValidationError' || err.name === 'CastError') {
-        throw new ErrorBadRequest('Переданы некорректные данные для постановки/снятии лайка');
-      } else if (err.statusCode === ErrorNotFound) {
-        throw new ErrorNotFound({ message: err.message });
-      } else {
-        throw new ErrorDefault('Ошибка по умолчанию.');
+    .then((card) => {
+      if (!card) {
+        next(new ErrorNotFound('Карточка не найдена'));
       }
+      res.status(200).send({ data: card });
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new ErrorBadRequest({ message: err.errorMessage }));
+      }
+      next(err);
+    });
 };
 
 const deleteLikeCard = (req, res, next) => {
@@ -78,22 +82,21 @@ const deleteLikeCard = (req, res, next) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-    .orFail()
-    .catch(() => {
+    .orFail(() => {
       throw new ErrorNotFound('Карточка не найдена');
     })
-    .catch(next)
-    .then((likes) => res.send({ data: likes }))
-    .catch((err) => {
-      if (err.name === 'ValidationError' || err.name === 'CastError') {
-        throw new ErrorBadRequest('Переданы некорректные данные для постановки/снятии лайка');
-      } else if (err.statusCode === ErrorNotFound) {
-        throw new ErrorNotFound({ message: err.message });
-      } else {
-        throw new ErrorDefault('Ошибка по умолчанию.');
+    .then((card) => {
+      if (!card) {
+        next(new ErrorNotFound('Карточка не найдена'));
       }
+      res.status(200).send({ data: card });
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new ErrorBadRequest({ message: 'Переданы некорректные данные' }));
+      }
+      next(err);
+    });
 };
 
 module.exports = {
