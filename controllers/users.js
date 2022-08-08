@@ -112,19 +112,12 @@ const login = (req, res, next) => {
 
 const getInfoUser = (req, res, next) => {
   User.findById(req.user._id)
-    .then((user) => {
-      if (!user._id) {
-        next(new ErrorNotFound('Пользователь не найден'));
-      }
-      res.status(200).send(user);
+    .orFail()
+    .catch(() => {
+      throw new ErrorNotFound('Пользователь с таким id не найден');
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new ErrorBadRequest('Переданы некорректные данные.'));
-      } else {
-        next(err);
-      }
-    });
+    .then((user) => res.status(200).send(user))
+    .catch(next);
 };
 
 module.exports = {

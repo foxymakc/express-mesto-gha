@@ -30,8 +30,8 @@ const createCard = (req, res, next) => {
 
 const deleteCard = (req, res, next) => {
   const userId = req.user._id;
-  const { _id } = req.params;
-  Card.findById(_id)
+  const { cardId } = req.params;
+  Card.findById(cardId)
     .orFail(() => {
       throw new ErrorNotFound('Карточка не найдена');
     })
@@ -39,7 +39,7 @@ const deleteCard = (req, res, next) => {
       if (card.owner.toString() !== userId) {
         throw new ErrorForbidden('Недостаточно прав для выполнения операции');
       }
-      Card.findByIdAndRemove(_id)
+      Card.findByIdAndRemove(cardId)
         .then((cardData) => res.send(cardData))
         .catch(next);
     })
@@ -47,8 +47,8 @@ const deleteCard = (req, res, next) => {
       if (err.name === 'CastError') {
         next(new ErrorBadRequest('Переданы некорректные данные'));
       }
-      next(err);
-    });
+    })
+    .catch(next);
 };
 
 const likeCard = (req, res, next) => {
