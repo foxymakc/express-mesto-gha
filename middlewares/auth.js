@@ -6,11 +6,7 @@ const { JWT_SECRET = 'secret-key' } = process.env;
 
 // eslint-disable-next-line consistent-return
 const auth = (req, res, next) => {
-  const token = req.cookies.userToken;
-
-  if (!token) {
-    throw new ErrorUnauthorized('Требуется авторизация');
-  }
+  const token = req.cookies.jwt;
   let payload;
 
   try {
@@ -20,7 +16,7 @@ const auth = (req, res, next) => {
   }
   req.user = payload;
 
-  next();
+  return next();
 };
 
 module.exports = { auth };
