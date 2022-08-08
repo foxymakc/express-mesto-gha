@@ -37,9 +37,7 @@ const deleteCard = (req, res, next) => {
     })
     .then((card) => {
       if (card.owner.toString() !== userId) {
-        throw new ErrorForbidden(
-          'Недостаточно прав для выполнения операции',
-        );
+        throw new ErrorForbidden('Недостаточно прав для выполнения операции');
       }
       Card.findByIdAndRemove(_id)
         .then((cardData) => res.send(cardData))
@@ -62,15 +60,10 @@ const likeCard = (req, res, next) => {
     .orFail(() => {
       throw new ErrorNotFound('Карточка не найдена');
     })
-    .then((card) => {
-      if (!card) {
-        next(new ErrorNotFound('Карточка не найдена'));
-      }
-      res.status(200).send({ data: card });
-    })
+    .then((likes) => res.status(200).send({ data: likes }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new ErrorBadRequest({ message: err.errorMessage }));
+        next(new ErrorBadRequest('Переданы некорректные данные'));
       }
       next(err);
     });
@@ -85,15 +78,10 @@ const deleteLikeCard = (req, res, next) => {
     .orFail(() => {
       throw new ErrorNotFound('Карточка не найдена');
     })
-    .then((card) => {
-      if (!card) {
-        next(new ErrorNotFound('Карточка не найдена'));
-      }
-      res.status(200).send({ data: card });
-    })
+    .then((likes) => res.status(200).send({ data: likes }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new ErrorBadRequest({ message: 'Переданы некорректные данные' }));
+        next(new ErrorBadRequest('Переданы некорректные данные'));
       }
       next(err);
     });
