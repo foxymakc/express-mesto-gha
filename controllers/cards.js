@@ -29,20 +29,20 @@ const createCard = (req, res, next) => {
 };
 
 const deleteCard = (req, res, next) => {
-  const userId = req.user._id;
-  const { _id } = req.params;
-  Card.findByIdAndRemove(_id)
+  Card.findById(req.params.cardId)
     .orFail()
     .catch(() => {
       throw new ErrorNotFound('Карточка не найдена');
     })
     .then((card) => {
-      if (card.owner.toString() === userId) {
-        Card.findByIdAndRemove(_id)
-          .then((cardData) => res.send(cardData));
-      } else {
+      if (card.owner.toString() !== req.user._id) {
         throw new ErrorForbidden('Недостаточно прав для выполнения операции');
       }
+      Card.findByIdAndDelete(req.params.cardId)
+        .then((cardData) => {
+          res.status(200).send({ data: cardData });
+        })
+        .catch(next);
     })
     .catch(next);
 };
