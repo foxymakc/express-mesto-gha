@@ -14,10 +14,10 @@ const getUsers = (req, res, next) => {
 };
 
 const getUserId = (req, res, next) => {
-  User.findById(req.params._id)
+  User.findById(req.params.userId)
     .then((user) => {
       if (user) {
-        res.statys(200).send(user);
+        res.status(200).send(user);
       } else {
         throw new ErrorNotFound('Пользователь по указанному _id не найден');
       }
@@ -34,7 +34,7 @@ const getInfoUser = (req, res, next) => {
   User.findById(req.user._id)
     .orFail()
     .catch(() => {
-      throw new ErrorNotFound('Пользователь с таким id не найден');
+      throw new ErrorNotFound('Пользователь по указанному _id не найден');
     })
     .then((user) => res.status(200).send(user))
     .catch(next);
@@ -56,7 +56,7 @@ const createUser = (req, res, next) => {
     }))
     .catch((err) => {
       if (err.name === 'ConflictError' || err.code === 11000) {
-        throw new ErrorConflict('Пользователь с таким email уже существует');
+        throw new ErrorConflict('Пользователя с таким email уже существует');
       }
     })
     .then((user) => res.status(200).send({
