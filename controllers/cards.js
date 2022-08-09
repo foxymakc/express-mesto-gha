@@ -30,22 +30,18 @@ const createCard = (req, res, next) => {
 
 const deleteCard = (req, res, next) => {
   const userId = req.user._id;
-  const { cardId } = req.params;
-  Card.findById(cardId)
-    .orFail(() => {
+  const { _id } = req.params;
+  Card.findByIdAndRemove(_id)
+    .orFail()
+    .catch(() => {
       throw new ErrorNotFound('Карточка не найдена');
     })
     .then((card) => {
-      if (card.owner.toString() !== userId) {
+      if (card.owner.toString() === userId) {
+        Card.findByIdAndRemove(_id)
+          .then((cardData) => res.send(cardData));
+      } else {
         throw new ErrorForbidden('Недостаточно прав для выполнения операции');
-      }
-      Card.findByIdAndRemove(cardId)
-        .then((cardData) => res.send(cardData))
-        .catch(next);
-    })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new ErrorBadRequest('Переданы некорректные данные'));
       }
     })
     .catch(next);
