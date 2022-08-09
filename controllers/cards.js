@@ -7,9 +7,6 @@ const ErrorForbidden = require('../errors/ErrorForbidden');
 const getCards = (req, res, next) => {
   Card.find({})
     .then((cards) => res.send({ data: cards }))
-    .catch(() => {
-      throw new ErrorDefault('Ошибка по умолчанию.');
-    })
     .catch(next);
 };
 
@@ -24,14 +21,12 @@ const createCard = (req, res, next) => {
       } else {
         next(new ErrorDefault('Ошибка по умолчанию.'));
       }
-    })
-    .catch(next);
+    });
 };
 
 const deleteCard = (req, res, next) => {
   Card.findById(req.params.cardId)
-    .orFail()
-    .catch(() => {
+    .orFail(() => {
       throw new ErrorNotFound('Карточка не найдена');
     })
     .then((card) => {
@@ -40,7 +35,7 @@ const deleteCard = (req, res, next) => {
       }
       Card.findByIdAndDelete(req.params.cardId)
         .then((cardData) => {
-          res.status(200).send({ data: cardData });
+          res.send({ data: cardData });
         })
         .catch(next);
     })
@@ -56,12 +51,13 @@ const likeCard = (req, res, next) => {
     .orFail(() => {
       throw new ErrorNotFound('Карточка не найдена');
     })
-    .then((likes) => res.status(200).send({ data: likes }))
+    .then((likes) => res.send({ data: likes }))
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new ErrorBadRequest('Переданы некорректные данные'));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 
@@ -74,12 +70,13 @@ const deleteLikeCard = (req, res, next) => {
     .orFail(() => {
       throw new ErrorNotFound('Карточка не найдена');
     })
-    .then((likes) => res.status(200).send({ data: likes }))
+    .then((likes) => res.send({ data: likes }))
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new ErrorBadRequest('Переданы некорректные данные'));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 

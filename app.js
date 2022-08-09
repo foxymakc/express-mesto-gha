@@ -28,7 +28,7 @@ app.post('/signup', createUserValidation, createUser);
 app.use('/', auth, require('./routes/users'));
 app.use('/', auth, require('./routes/cards'));
 
-app.use('*', () => {
+app.use('*', auth, () => {
   throw new ErrorNotFound('Запрашиваемый ресурс не найден');
 });
 

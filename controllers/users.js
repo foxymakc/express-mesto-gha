@@ -17,7 +17,7 @@ const getUserId = (req, res, next) => {
   User.findById(req.params.userId)
     .then((user) => {
       if (user) {
-        res.status(200).send(user);
+        res.send(user);
       } else {
         throw new ErrorNotFound('Пользователь по указанному _id не найден');
       }
@@ -25,18 +25,18 @@ const getUserId = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new ErrorBadRequest('Переданы невалидный id'));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 
 const getInfoUser = (req, res, next) => {
   User.findById(req.user._id)
-    .orFail()
-    .catch(() => {
+    .orFail(() => {
       throw new ErrorNotFound('Пользователь по указанному _id не найден');
     })
-    .then((user) => res.status(200).send(user))
+    .then((user) => res.send(user))
     .catch(next);
 };
 
@@ -45,26 +45,25 @@ const createUser = (req, res, next) => {
     name, about, avatar, email, password,
   } = req.body;
 
-  if (!email || !password) {
-    throw new ErrorBadRequest('Не передан email или пароль');
-  }
-
   bcrypt
     .hash(password, 10)
     .then((hash) => User.create({
       name, about, avatar, email, password: hash,
     }))
-    .catch((err) => {
-      if (err.name === 'ConflictError' || err.code === 11000) {
-        throw new ErrorConflict('Пользователя с таким email уже существует');
-      }
-    })
-    .then((user) => res.status(200).send({
+    .then((user) => res.send({
       data: {
         name: user.name, about: user.about, avatar, email: user.email,
       },
     }))
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ConflictError' || err.code === 11000) {
+        next(new ErrorConflict('Пользователя с таким email уже существует'));
+      } else if (err.name === 'ValidationError') {
+        next(new ErrorBadRequest('Переданы некорректные данные'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 const updateUser = (req, res, next) => {
@@ -74,12 +73,13 @@ const updateUser = (req, res, next) => {
     .orFail(() => {
       throw new ErrorNotFound('Пользователь не найден');
     })
-    .then((user) => res.status(200).send({ data: user }))
+    .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'CastError' || err.name === 'ValidationError') {
         next(new ErrorBadRequest('Переданы некорректные данные при обновлении профиля'));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 
@@ -90,12 +90,13 @@ const updateAvatar = (req, res, next) => {
     .orFail(() => {
       throw new ErrorNotFound('Пользователь не найден');
     })
-    .then((user) => res.status(200).send({ data: user }))
+    .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'CastError' || err.name === 'ValidationError') {
         next(new ErrorBadRequest('Переданы некорректные данные при обновлении профиля'));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 
