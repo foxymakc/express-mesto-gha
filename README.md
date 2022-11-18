@@ -1,4 +1,4 @@
-# Проект express-mesto-gha
+# express-mesto-gha
 
 Бэкенд сервер на Express.js для проекта [react-mesto-auth](https://github.com/foxymakc/react-mesto-auth)
 
